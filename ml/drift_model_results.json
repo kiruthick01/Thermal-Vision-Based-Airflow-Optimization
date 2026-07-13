@@ -1,0 +1,11 @@
+{
+  "k_history": 10,
+  "h_forecast": 10,
+  "hidden_dim": 16,
+  "param_count": 369,
+  "n_train_days": 45,
+  "n_test_days": 15,
+  "epochs": 300,
+  "test_mae_c": 0.15655051295637987,
+  "test_rmse_c": 0.23441902489572372
+}
