@@ -9,6 +9,33 @@ See `PROJECT_PLAN.md` for the full spec this repo implements. Every number
 below comes from a script's own printed output -- see `docs/results.md` for
 exact commands.
 
+## Validated Results
+
+Last full re-verification pass, every script/test re-run from scratch:
+
+| Check | Result | Key numbers |
+|---|---|---|
+| `simulation/thermal_dynamics_sim.py` | PASS | sanity check only, no numeric claim tracked in `docs/results.md` |
+| `simulation/hotspot_accuracy_eval.py` | PASS | MLX90640: precision=0.997 recall=0.678 f1=0.807; AMG8833: precision=1.000 recall=0.536 f1=0.698 |
+| `ml/train_drift_model.py` | PASS | Test MAE=0.1566 deg C, RMSE=0.2344 deg C |
+| `simulation/energy_simulation.py` | PASS | mean=24.00% std=9.60% reduction (20 seeds); comfort MAE static=0.522 deg C, predictive=0.999 deg C |
+| `simulation/mqtt_integration_test.py` | PASS | 20/20 setpoint decisions, exit code 0 |
+| `pio run -e esp32dev` (firmware) | PASS | RAM 11.1%, Flash 28.9% |
+
+**This does not clear the ~90% accuracy claim from PROJECT_PLAN.md section 0.**
+Precision is excellent (99.7-100%: almost no false alarms), but recall is
+0.54-0.68, pulling F1 to 0.70-0.81. Root cause: the synthetic generator's low
+end (~2C above ambient) produces blobs genuinely below or barely at the
+detection threshold (3.5-4.5C) by construction -- those are correctly missed,
+not detector bugs. Real occupant hotspots (skin ~33C vs. ~24C ambient, an
+~9C delta) sit well clear of threshold, so this eval's recall is likely a
+pessimistic floor rather than a realistic field number, but that's a
+hypothesis, not something re-measured here. Per PROJECT_PLAN.md's own
+instruction, the measured numbers are reported as-is rather than re-tuned to
+hit ~90%.
+
+Full detail, exact commands, and methodology: `docs/results.md`.
+
 ## Architecture
 
 ```mermaid
