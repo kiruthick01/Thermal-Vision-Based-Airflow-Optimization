@@ -1,0 +1,169 @@
+{
+  "n_seeds": 20,
+  "mean_reduction_pct": 23.997927411172306,
+  "std_reduction_pct": 9.600343179086774,
+  "mean_comfort_static_mae_c": 0.5223486649716065,
+  "mean_comfort_predictive_mae_c": 0.998906549145398,
+  "per_seed": [
+    {
+      "seed": 0,
+      "static_energy": 407.0,
+      "predictive_energy": 333.7630053430719,
+      "reduction_pct": 17.99434758155482,
+      "comfort_static_mae_c": 0.48302196867369784,
+      "comfort_predictive_mae_c": 0.8827866720926112
+    },
+    {
+      "seed": 1,
+      "static_energy": 371.0,
+      "predictive_energy": 261.320677532053,
+      "reduction_pct": 29.563159694864417,
+      "comfort_static_mae_c": 0.38071876682270156,
+      "comfort_predictive_mae_c": 1.0233326785948236
+    },
+    {
+      "seed": 2,
+      "static_energy": 168.0,
+      "predictive_energy": 145.01908227958702,
+      "reduction_pct": 13.67911769072201,
+      "comfort_static_mae_c": 0.5259752020873688,
+      "comfort_predictive_mae_c": 0.6823189457046679
+    },
+    {
+      "seed": 3,
+      "static_energy": 264.0,
+      "predictive_energy": 200.64013636285117,
+      "reduction_pct": 23.99994834740486,
+      "comfort_static_mae_c": 0.219983728286158,
+      "comfort_predictive_mae_c": 0.7579399302778295
+    },
+    {
+      "seed": 4,
+      "static_energy": 120.0,
+      "predictive_energy": 92.12569722671088,
+      "reduction_pct": 23.228585644407598,
+      "comfort_static_mae_c": 0.5808899620875148,
+      "comfort_predictive_mae_c": 0.8157259035919823
+    },
+    {
+      "seed": 5,
+      "static_energy": 138.0,
+      "predictive_energy": 101.70399122178999,
+      "reduction_pct": 26.301455636384063,
+      "comfort_static_mae_c": 0.9906933200178142,
+      "comfort_predictive_mae_c": 1.1564383883807392
+    },
+    {
+      "seed": 6,
+      "static_energy": 268.0,
+      "predictive_energy": 208.75790250919943,
+      "reduction_pct": 22.105260257761408,
+      "comfort_static_mae_c": 0.34598202559157587,
+      "comfort_predictive_mae_c": 0.7671461019673456
+    },
+    {
+      "seed": 7,
+      "static_energy": 248.0,
+      "predictive_energy": 216.5907389299538,
+      "reduction_pct": 12.665024625018628,
+      "comfort_static_mae_c": 1.0734016565918447,
+      "comfort_predictive_mae_c": 1.2437007163581983
+    },
+    {
+      "seed": 8,
+      "static_energy": 312.0,
+      "predictive_energy": 220.91637011494214,
+      "reduction_pct": 29.193471117005725,
+      "comfort_static_mae_c": 0.4496765064509248,
+      "comfort_predictive_mae_c": 1.060933997970133
+    },
+    {
+      "seed": 9,
+      "static_energy": 300.0,
+      "predictive_energy": 251.2655651875146,
+      "reduction_pct": 16.244811604161804,
+      "comfort_static_mae_c": 0.40002511909561683,
+      "comfort_predictive_mae_c": 0.6855647435408979
+    },
+    {
+      "seed": 10,
+      "static_energy": 207.0,
+      "predictive_energy": 131.3316669190583,
+      "reduction_pct": 36.554750280648165,
+      "comfort_static_mae_c": 0.6949361711648739,
+      "comfort_predictive_mae_c": 1.5312973601969744
+    },
+    {
+      "seed": 11,
+      "static_energy": 240.0,
+      "predictive_energy": 211.74982325111105,
+      "reduction_pct": 11.770906978703728,
+      "comfort_static_mae_c": 0.46350194126200395,
+      "comfort_predictive_mae_c": 0.5528819998534117
+    },
+    {
+      "seed": 12,
+      "static_energy": 309.0,
+      "predictive_energy": 201.58280918679998,
+      "reduction_pct": 34.762844923365705,
+      "comfort_static_mae_c": 0.3488470345118924,
+      "comfort_predictive_mae_c": 1.0753498750885062
+    },
+    {
+      "seed": 13,
+      "static_energy": 111.0,
+      "predictive_energy": 106.825191531178,
+      "reduction_pct": 3.7610887106504447,
+      "comfort_static_mae_c": 0.7526210609929069,
+      "comfort_predictive_mae_c": 0.6613594340238202
+    },
+    {
+      "seed": 14,
+      "static_energy": 222.0,
+      "predictive_energy": 169.27162619145514,
+      "reduction_pct": 23.751519733578768,
+      "comfort_static_mae_c": 0.44181592075486065,
+      "comfort_predictive_mae_c": 0.8791152423407346
+    },
+    {
+      "seed": 15,
+      "static_energy": 235.0,
+      "predictive_energy": 145.95071222915095,
+      "reduction_pct": 37.89331394504215,
+      "comfort_static_mae_c": 0.492073056173504,
+      "comfort_predictive_mae_c": 1.2115993478334948
+    },
+    {
+      "seed": 16,
+      "static_energy": 479.0,
+      "predictive_energy": 270.0231573322216,
+      "reduction_pct": 43.62773333356543,
+      "comfort_static_mae_c": 0.3002491305748553,
+      "comfort_predictive_mae_c": 1.912804196968938
+    },
+    {
+      "seed": 17,
+      "static_energy": 226.0,
+      "predictive_energy": 164.53816809420607,
+      "reduction_pct": 27.195500843271645,
+      "comfort_static_mae_c": 0.8174071149662784,
+      "comfort_predictive_mae_c": 1.3938286074055266
+    },
+    {
+      "seed": 18,
+      "static_energy": 360.0,
+      "predictive_energy": 266.1860133947396,
+      "reduction_pct": 26.05944072368345,
+      "comfort_static_mae_c": 0.3411458751082639,
+      "comfort_predictive_mae_c": 0.9360376802731313
+    },
+    {
+      "seed": 19,
+      "static_energy": 380.0,
+      "predictive_energy": 305.49618710372533,
+      "reduction_pct": 19.606266551651228,
+      "comfort_static_mae_c": 0.34400773821747527,
+      "comfort_predictive_mae_c": 0.7479691604441921
+    }
+  ]
+}

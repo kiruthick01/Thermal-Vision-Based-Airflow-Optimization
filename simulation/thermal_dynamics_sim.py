@@ -39,12 +39,12 @@ def occupant_heat_gain_c_per_s(occupants, heat_per_person_w=100.0, thermal_mass_
 def bang_bang_policy(setpoint_c=24.0, hysteresis_c=0.5):
     """Static thermostat: toggles hvac_on at setpoint +/- hysteresis."""
 
-    def policy(step_index, t_s, T_in, prev_on):
+    def policy(step_index, t_s, T_in, occupancy, prev_level):
         if T_in > setpoint_c + hysteresis_c:
-            return True
+            return 1.0
         if T_in < setpoint_c - hysteresis_c:
-            return False
-        return prev_on
+            return 0.0
+        return prev_level
 
     return policy
 
@@ -73,8 +73,10 @@ def simulate(
     """Simulate one zone's temperature trajectory.
 
     Returns a dict of equal-length arrays: t, T_outside, T_inside, occupancy,
-    hvac_on. hvac_policy(step_index, t_s, T_in, prev_on) -> bool defaults to
-    a static bang-bang thermostat at setpoint_c +/- hysteresis_c.
+    hvac_on. hvac_policy(step_index, t_s, T_in, occupancy, prev_level) -> a
+    cooling level in [0, 1] (0/1 for bang-bang, continuous for a proportional
+    predictive controller). Defaults to a static bang-bang thermostat at
+    setpoint_c +/- hysteresis_c.
     """
     rng = np.random.default_rng(seed)
     if hvac_policy is None:
@@ -88,12 +90,12 @@ def simulate(
     occ_gain = occupant_heat_gain_c_per_s(occ, heat_per_person_w, thermal_mass_j_per_c)
 
     T_in = np.empty(n_steps)
-    hvac_on = np.empty(n_steps, dtype=bool)
+    hvac_on = np.empty(n_steps, dtype=float)
     T_in[0] = T_inside_init
-    prev_on = False
+    prev_on = 0.0
 
     for i in range(n_steps):
-        prev_on = hvac_policy(i, t[i], T_in[i], prev_on)
+        prev_on = float(hvac_policy(i, t[i], T_in[i], occ[i], prev_on))
         hvac_on[i] = prev_on
         if i + 1 < n_steps:
             dT = (T_out[i] - T_in[i]) / tau_env_s + occ_gain[i] - hvac_cooling_c_per_s * prev_on
