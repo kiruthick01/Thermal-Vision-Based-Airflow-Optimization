@@ -1,0 +1,33 @@
+{
+  "match_radius_px": 2.5,
+  "results": [
+    {
+      "sensor": "MLX90640",
+      "rows": 24,
+      "cols": 32,
+      "delta_c": 4.5,
+      "min_pixels": 2,
+      "n_frames": 1000,
+      "true_positives": 1068,
+      "false_positives": 3,
+      "false_negatives": 507,
+      "precision": 0.9971988795518207,
+      "recall": 0.6780952380952381,
+      "f1": 0.8072562358276645
+    },
+    {
+      "sensor": "AMG8833",
+      "rows": 8,
+      "cols": 8,
+      "delta_c": 3.5,
+      "min_pixels": 1,
+      "n_frames": 1000,
+      "true_positives": 810,
+      "false_positives": 0,
+      "false_negatives": 702,
+      "precision": 1.0,
+      "recall": 0.5357142857142857,
+      "f1": 0.6976744186046512
+    }
+  ]
+}
