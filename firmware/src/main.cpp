@@ -36,6 +36,7 @@ Hotspot hotspots[kMaxHotspots];
 MqttManager mqtt(kMqttBroker, kMqttPort, kMqttZone, kMqttClientId);
 
 unsigned long lastFrameMs = 0;
+bool heartbeatState = false;
 
 void onSetpoint(float setpointC) {
   Serial.printf("Received setpoint: %.2f C\n", setpointC);
@@ -70,6 +71,8 @@ void publishHotspots(const Hotspot* spots, int count) {
 
 void setup() {
   Serial.begin(115200);
+  pinMode(kHeartbeatLedPin, OUTPUT);
+  pinMode(kHotspotLedPin, OUTPUT);
   connectWifi();
   mqtt.setSetpointCallback(onSetpoint);
   mqtt.begin();
@@ -94,4 +97,9 @@ void loop() {
   const int count = detector.detect(frame, sensor.rows(), sensor.cols(), hotspots, kMaxHotspots);
   publishHotspots(hotspots, count);
   mqtt.publishStatus("online");
+
+  heartbeatState = !heartbeatState;
+  digitalWrite(kHeartbeatLedPin, heartbeatState ? HIGH : LOW);
+  digitalWrite(kHotspotLedPin, count > 0 ? HIGH : LOW);
+  Serial.printf("Frame processed: %d hotspot(s)\n", count);
 }

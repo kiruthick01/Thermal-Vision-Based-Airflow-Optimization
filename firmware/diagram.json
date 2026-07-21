@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "author": "kiruthick01",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-v1",
+      "id": "esp",
+      "top": -4.78,
+      "left": -1.65,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_heartbeat",
+      "top": -63.6,
+      "left": 100.2,
+      "attrs": { "color": "green", "label": "heartbeat" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_heartbeat",
+      "top": -40,
+      "left": 96,
+      "rotate": 90,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_hotspot",
+      "top": -63.6,
+      "left": 148.2,
+      "attrs": { "color": "red", "label": "hotspot" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_hotspot",
+      "top": -40,
+      "left": 144,
+      "rotate": 90,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    [ "esp:D2", "r_heartbeat:1", "green", [ "v0" ] ],
+    [ "r_heartbeat:2", "led_heartbeat:A", "green", [ "v0" ] ],
+    [ "led_heartbeat:C", "esp:GND.1", "black", [ "v0" ] ],
+
+    [ "esp:D4", "r_hotspot:1", "red", [ "v0" ] ],
+    [ "r_hotspot:2", "led_hotspot:A", "red", [ "v0" ] ],
+    [ "led_hotspot:C", "esp:GND.2", "black", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}

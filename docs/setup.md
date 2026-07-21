@@ -91,6 +91,39 @@ pio run -e esp32dev_amg8833
 These pull in the `Adafruit MLX90640` / `Adafruit AMG88xx Library` PlatformIO
 packages, which the default SIM build does not need.
 
+## Wokwi simulation (no hardware needed)
+
+`firmware/diagram.json` + `firmware/wokwi.toml` wire the default SIM build
+(`esp32dev` env, `SENSOR_MODE_SIM`) to two LEDs on an ESP32 DevKit V1:
+`D2` (green, "heartbeat") toggles once per `kFramePeriodMs` frame cycle,
+`D4` (red, "hotspot") lights while `SimulatedSensor`'s current frame has at
+least one detected hotspot. No thermal camera part exists in Wokwi's library,
+so this demonstrates the on-device sensing -> `HotspotDetector` -> indicator
+pipeline exactly as it runs in `SENSOR_MODE_SIM` (no WiFi/MQTT broker
+required either -- `connectWifi()` is a no-op in SIM builds, and
+`MqttManager` degrades to silent no-op publishes when disconnected).
+
+Option A -- Wokwi VS Code extension:
+
+1. Build first: `cd firmware && pio run -e esp32dev`
+2. Open the `firmware/` folder in VS Code with the "Wokwi Simulator"
+   extension installed, then run "Wokwi: Start Simulator" (uses
+   `diagram.json` + `wokwi.toml` automatically).
+
+Option B -- `wokwi-cli` (no VS Code):
+
+```bash
+cd firmware
+pio run -e esp32dev
+wokwi-cli . --timeout 15000
+```
+
+Option C -- wokwi.com web IDE: create a new ESP32 project, paste the
+contents of `firmware/diagram.json` into its Diagram editor, and paste
+`firmware/src/*.cpp`/`.h` + `firmware/include/config.h` into matching files
+(the web IDE compiles Arduino sketches directly, so PlatformIO's
+multi-file layout needs flattening into one sketch there).
+
 ## Local MQTT broker for manual testing
 
 To run the controller against a real broker instead of the integration

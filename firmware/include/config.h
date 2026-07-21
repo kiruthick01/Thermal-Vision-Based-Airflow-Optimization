@@ -18,6 +18,16 @@ constexpr int kHotspotMinPixels = 2;
 
 constexpr int kMaxHotspots = 16;
 
+// Demo/Wokwi indicators only -- not part of the documented control
+// architecture (that's controller/airflow_controller.py's job). These just
+// give the simulation something visible: kHeartbeatLedPin toggles once per
+// frame cycle (proof the main loop is alive), kHotspotLedPin lights while
+// the current frame has at least one detected hotspot (visual proxy for
+// "occupancy detected"). Final actuation still happens via control/setpoint
+// once real relay/damper hardware is chosen (docs/hardware-bom.md).
+constexpr int kHeartbeatLedPin = 2;
+constexpr int kHotspotLedPin = 4;
+
 // MQTT (PROJECT_PLAN.md section 8)
 constexpr char kMqttBroker[] = "192.168.1.10";
 constexpr int kMqttPort = 1883;
