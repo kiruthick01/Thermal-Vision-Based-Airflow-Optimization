@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <ESP32Servo.h>
 #include <WiFi.h>
 
 #include "HotspotDetector.h"
@@ -34,14 +35,36 @@ float frame[kRows * kCols];
 HotspotDetector detector(kHotspotDeltaC, kHotspotMinPixels);
 Hotspot hotspots[kMaxHotspots];
 MqttManager mqtt(kMqttBroker, kMqttPort, kMqttZone, kMqttClientId);
+Servo airflowServo;
 
 unsigned long lastFrameMs = 0;
 bool heartbeatState = false;
 
+// Picks the strongest hotspot (highest peak temp -- most likely a real
+// occupant rather than a marginal blob) and maps its column across the
+// sensor's field of view to a servo angle, so the vent physically points
+// toward whoever is warmest in frame. Returns kServoCenterAngleDeg (park
+// position) when nothing is detected.
+int angleForHotspots(const Hotspot* spots, int count, int cols) {
+  if (count <= 0 || cols <= 1) return kServoCenterAngleDeg;
+
+  int strongest = 0;
+  for (int i = 1; i < count; ++i) {
+    if (spots[i].peak_temp_c > spots[strongest].peak_temp_c) strongest = i;
+  }
+
+  const float colFrac = spots[strongest].col / static_cast<float>(cols - 1);
+  const float angle = kServoMinAngleDeg + colFrac * (kServoMaxAngleDeg - kServoMinAngleDeg);
+  return constrain(static_cast<int>(angle), kServoMinAngleDeg, kServoMaxAngleDeg);
+}
+
 void onSetpoint(float setpointC) {
   Serial.printf("Received setpoint: %.2f C\n", setpointC);
-  // Relay/damper actuation is hardware-specific (docs/hardware-bom.md) and
-  // wired up once that hardware is purchased; not modeled here.
+  // Temperature-level actuation (cycling/modulating the HVAC unit itself)
+  // is hardware-specific (docs/hardware-bom.md) and wired up once a
+  // relay/compressor interface is chosen; not modeled here. Airflow
+  // *direction* is handled separately and immediately in loop() via
+  // airflowServo -- it doesn't wait on this MQTT round-trip.
 }
 
 void connectWifi() {
@@ -73,6 +96,11 @@ void setup() {
   Serial.begin(115200);
   pinMode(kHeartbeatLedPin, OUTPUT);
   pinMode(kHotspotLedPin, OUTPUT);
+
+  airflowServo.setPeriodHertz(50);
+  airflowServo.attach(kServoPin, 500, 2400);
+  airflowServo.write(kServoCenterAngleDeg);
+
   connectWifi();
   mqtt.setSetpointCallback(onSetpoint);
   mqtt.begin();
@@ -101,5 +129,9 @@ void loop() {
   heartbeatState = !heartbeatState;
   digitalWrite(kHeartbeatLedPin, heartbeatState ? HIGH : LOW);
   digitalWrite(kHotspotLedPin, count > 0 ? HIGH : LOW);
-  Serial.printf("Frame processed: %d hotspot(s)\n", count);
+
+  const int angle = angleForHotspots(hotspots, count, sensor.cols());
+  airflowServo.write(angle);
+
+  Serial.printf("Frame processed: %d hotspot(s), servo angle %d\n", count, angle);
 }

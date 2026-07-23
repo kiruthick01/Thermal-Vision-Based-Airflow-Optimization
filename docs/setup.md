@@ -94,14 +94,18 @@ packages, which the default SIM build does not need.
 ## Wokwi simulation (no hardware needed)
 
 `firmware/diagram.json` + `firmware/wokwi.toml` wire the default SIM build
-(`esp32dev` env, `SENSOR_MODE_SIM`) to two LEDs on an ESP32 DevKit V1:
-`D2` (green, "heartbeat") toggles once per `kFramePeriodMs` frame cycle,
-`D4` (red, "hotspot") lights while `SimulatedSensor`'s current frame has at
-least one detected hotspot. No thermal camera part exists in Wokwi's library,
-so this demonstrates the on-device sensing -> `HotspotDetector` -> indicator
-pipeline exactly as it runs in `SENSOR_MODE_SIM` (no WiFi/MQTT broker
-required either -- `connectWifi()` is a no-op in SIM builds, and
-`MqttManager` degrades to silent no-op publishes when disconnected).
+(`esp32dev` env, `SENSOR_MODE_SIM`) to an ESP32 DevKit V1 with:
+`D2` (green LED, "heartbeat") toggling once per `kFramePeriodMs` frame cycle,
+`D4` (red LED, "hotspot") lighting while `SimulatedSensor`'s current frame has
+at least one detected hotspot, and a `wokwi-servo` on `D18` that physically
+rotates to track the strongest detected hotspot's position (`kServoPin`,
+`angleForHotspots()` in `main.cpp`) -- the same directional-airflow logic
+that drives the real SG90 servo once hardware arrives. No thermal camera
+part exists in Wokwi's library, so this demonstrates the on-device sensing ->
+`HotspotDetector` -> indicator/servo pipeline exactly as it runs in
+`SENSOR_MODE_SIM` (no WiFi/MQTT broker required either -- `connectWifi()` is
+a no-op in SIM builds, and `MqttManager` degrades to silent no-op publishes
+when disconnected).
 
 Option A -- Wokwi VS Code extension:
 

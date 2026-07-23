@@ -13,6 +13,7 @@ sequenceDiagram
         FW->>Sensor: readFrame()
         Sensor-->>FW: frame[rows*cols] (deg C)
         FW->>FW: HotspotDetector::detect()
+        FW->>FW: angleForHotspots() -> airflowServo.write() (on-device, no MQTT wait)
         FW->>MQTT: publish site/<zone>/thermal/hotspots
         FW->>MQTT: publish site/<zone>/status (heartbeat/LWT)
     end
@@ -42,6 +43,21 @@ sequenceDiagram
 | `energy_simulation.py` | `simulation/energy_simulation.py` | Runs the static bang-bang thermostat and the predictive controller over identical randomized days, reports mean/std energy reduction. |
 | `airflow_controller.py` | `controller/airflow_controller.py` | Production-shaped version of the predictive controller: subscribes to live MQTT topics, loads the trained model, publishes control/setpoint decisions. |
 | `mqtt_integration_test.py` | `simulation/mqtt_integration_test.py` | Spins up an in-process `amqtt` broker, drives a simulated publisher, and confirms the controller reacts end-to-end. |
+| `angleForHotspots` / `airflowServo` | `firmware/src/main.cpp` | On-device airflow-direction reflex: maps the strongest detected hotspot's column to a servo angle (`config.h` `kServoPin`) every frame. Independent of the MQTT round-trip -- doesn't wait on `airflow_controller.py`. |
+
+## Two actuation paths, two timescales
+
+There are deliberately two separate actuation mechanisms, not one:
+
+- **Airflow direction** (fast, on-device): `main.cpp` computes a servo angle
+  from the current frame's strongest hotspot and writes it immediately, every
+  `kFramePeriodMs`. No network dependency -- this keeps working even if
+  WiFi/MQTT is down.
+- **Temperature setpoint** (slower, host-side): `airflow_controller.py`
+  combines the drift forecast with occupancy to decide `setpoint_c` /
+  `cooling_level`, published back over MQTT to `onSetpoint()`. This is where
+  a relay/compressor interface would eventually plug in (not yet wired --
+  see `docs/hardware-bom.md`).
 
 ## Sensor abstraction and hardware swap-in
 

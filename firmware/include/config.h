@@ -23,10 +23,21 @@ constexpr int kMaxHotspots = 16;
 // give the simulation something visible: kHeartbeatLedPin toggles once per
 // frame cycle (proof the main loop is alive), kHotspotLedPin lights while
 // the current frame has at least one detected hotspot (visual proxy for
-// "occupancy detected"). Final actuation still happens via control/setpoint
-// once real relay/damper hardware is chosen (docs/hardware-bom.md).
+// "occupancy detected").
 constexpr int kHeartbeatLedPin = 2;
 constexpr int kHotspotLedPin = 4;
+
+// Airflow-direction actuator (docs/hardware-bom.md: SG90/MG90S micro servo
+// on a louvre/vent flap). This is an on-device reflex, separate from the
+// MQTT control/setpoint path: main.cpp maps the strongest detected
+// hotspot's column directly to a servo angle every frame, so the vent
+// tracks occupants without waiting on the host controller round-trip.
+// setpoint_c/cooling_level (temperature-level decisions from the drift
+// model) still come from controller/airflow_controller.py as documented.
+constexpr int kServoPin = 18;
+constexpr int kServoMinAngleDeg = 0;
+constexpr int kServoMaxAngleDeg = 180;
+constexpr int kServoCenterAngleDeg = 90;  // no hotspot: park at center
 
 // MQTT (PROJECT_PLAN.md section 8)
 constexpr char kMqttBroker[] = "192.168.1.10";

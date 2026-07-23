@@ -39,6 +39,13 @@
       "left": 144,
       "rotate": 90,
       "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "airflow_servo",
+      "top": 60,
+      "left": 200,
+      "attrs": { "horn": "single" }
     }
   ],
   "connections": [
@@ -48,7 +55,11 @@
 
     [ "esp:D4", "r_hotspot:1", "red", [ "v0" ] ],
     [ "r_hotspot:2", "led_hotspot:A", "red", [ "v0" ] ],
-    [ "led_hotspot:C", "esp:GND.2", "black", [ "v0" ] ]
+    [ "led_hotspot:C", "esp:GND.2", "black", [ "v0" ] ],
+
+    [ "esp:D18", "airflow_servo:PWM", "orange", [ "v0" ] ],
+    [ "esp:5V", "airflow_servo:V+", "red", [ "v0" ] ],
+    [ "esp:GND.3", "airflow_servo:GND", "black", [ "v0" ] ]
   ],
   "dependencies": {}
 }
