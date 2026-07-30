@@ -1,0 +1,36 @@
+#pragma once
+
+#include <Adafruit_ILI9341.h>
+#include <SPI.h>
+
+#include "HotspotDetector.h"
+#include "config.h"
+
+// Renders the current thermal frame as a false-color heatmap on a 2.4"
+// ILI9341 SPI TFT (320x240 landscape), with the detected hotspots
+// overlaid as markers. Purely a visualization -- reads the same frame/
+// hotspot data main.cpp already has, doesn't feed back into detection or
+// control logic anywhere.
+//
+// Wiring: config.h kTftSckPin/kTftMisoPin/kTftMosiPin (ESP32 hardware
+// VSPI bus) + kTftCsPin/kTftDcPin/kTftRstPin. Backlight (LED) wired
+// straight to 3V3 on the physical board.
+class HeatmapDisplay {
+public:
+  bool begin();
+
+  // frame is row-major rows*cols temperatures (deg C). spots/count is the
+  // same HotspotDetector output already computed this frame -- pass it
+  // straight through, no recomputation.
+  void render(const float* frame, int rows, int cols, const Hotspot* spots, int count);
+
+private:
+  static constexpr int kScreenW = 320;
+  static constexpr int kScreenH = 240;
+  static constexpr int kStatusBarH = 20;
+
+  SPIClass spi_{VSPI};
+  Adafruit_ILI9341 tft_{&spi_, kTftDcPin, kTftCsPin, kTftRstPin};
+
+  static uint16_t thermalColor565(float t, float tMin, float tMax);
+};

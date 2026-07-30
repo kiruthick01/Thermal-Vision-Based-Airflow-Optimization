@@ -13,53 +13,70 @@
     {
       "type": "wokwi-led",
       "id": "led_heartbeat",
-      "top": -63.6,
-      "left": 100.2,
+      "top": -170,
+      "left": 130,
       "attrs": { "color": "green", "label": "heartbeat" }
     },
     {
       "type": "wokwi-resistor",
       "id": "r_heartbeat",
-      "top": -40,
-      "left": 96,
+      "top": -95,
+      "left": 134,
       "rotate": 90,
       "attrs": { "value": "220" }
     },
     {
       "type": "wokwi-led",
       "id": "led_hotspot",
-      "top": -63.6,
-      "left": 148.2,
+      "top": -170,
+      "left": 250,
       "attrs": { "color": "red", "label": "hotspot" }
     },
     {
       "type": "wokwi-resistor",
       "id": "r_hotspot",
-      "top": -40,
-      "left": 144,
+      "top": -95,
+      "left": 254,
       "rotate": 90,
       "attrs": { "value": "220" }
     },
     {
       "type": "wokwi-servo",
       "id": "airflow_servo",
-      "top": 60,
-      "left": 200,
+      "top": 130,
+      "left": 420,
       "attrs": { "horn": "single" }
+    },
+    {
+      "type": "wokwi-ili9341",
+      "id": "tft",
+      "top": 320,
+      "left": 0,
+      "attrs": {}
     }
   ],
   "connections": [
-    [ "esp:D2", "r_heartbeat:1", "green", [ "v0" ] ],
-    [ "r_heartbeat:2", "led_heartbeat:A", "green", [ "v0" ] ],
-    [ "led_heartbeat:C", "esp:GND.1", "black", [ "v0" ] ],
+    [ "esp:D2", "r_heartbeat:1", "green", [] ],
+    [ "r_heartbeat:2", "led_heartbeat:A", "green", [] ],
+    [ "led_heartbeat:C", "esp:GND.1", "black", [] ],
 
-    [ "esp:D4", "r_hotspot:1", "red", [ "v0" ] ],
-    [ "r_hotspot:2", "led_hotspot:A", "red", [ "v0" ] ],
-    [ "led_hotspot:C", "esp:GND.2", "black", [ "v0" ] ],
+    [ "esp:D4", "r_hotspot:1", "red", [] ],
+    [ "r_hotspot:2", "led_hotspot:A", "red", [] ],
+    [ "led_hotspot:C", "esp:GND.2", "black", [] ],
 
-    [ "esp:D18", "airflow_servo:PWM", "orange", [ "v0" ] ],
-    [ "esp:5V", "airflow_servo:V+", "red", [ "v0" ] ],
-    [ "esp:GND.3", "airflow_servo:GND", "black", [ "v0" ] ]
+    [ "esp:D13", "airflow_servo:PWM", "orange", [] ],
+    [ "esp:5V", "airflow_servo:V+", "red", [] ],
+    [ "esp:GND.3", "airflow_servo:GND", "black", [] ],
+
+    [ "esp:D18", "tft:SCK", "yellow", [] ],
+    [ "esp:D19", "tft:SDO", "yellow", [] ],
+    [ "esp:D23", "tft:SDI", "yellow", [] ],
+    [ "esp:D15", "tft:CS", "yellow", [] ],
+    [ "esp:D27", "tft:DC", "yellow", [] ],
+    [ "esp:D26", "tft:RESET", "yellow", [] ],
+    [ "esp:3V3", "tft:VCC", "red", [] ],
+    [ "esp:3V3", "tft:LED", "red", [] ],
+    [ "esp:GND.3", "tft:GND", "black", [] ]
   ],
   "dependencies": {}
 }

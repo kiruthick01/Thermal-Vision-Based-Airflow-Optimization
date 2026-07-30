@@ -34,10 +34,24 @@ constexpr int kHotspotLedPin = 4;
 // tracks occupants without waiting on the host controller round-trip.
 // setpoint_c/cooling_level (temperature-level decisions from the drift
 // model) still come from controller/airflow_controller.py as documented.
-constexpr int kServoPin = 18;
+// GPIO18 moved off this pin (was the servo's home) to make room for the
+// TFT's hardware VSPI bus, which claims 18/19/23 on the ESP32.
+constexpr int kServoPin = 13;
 constexpr int kServoMinAngleDeg = 0;
 constexpr int kServoMaxAngleDeg = 180;
 constexpr int kServoCenterAngleDeg = 90;  // no hotspot: park at center
+
+// ILI9341 2.4" SPI TFT -- live color heatmap of the current thermal frame
+// plus detected-hotspot markers (HeatmapDisplay.h/.cpp). Uses the ESP32's
+// hardware VSPI bus: SCK/MISO/MOSI are fixed by the peripheral, CS/DC/RST
+// are freely chosen GPIOs. Backlight (LED pin) is wired straight to 3V3 on
+// the physical board -- no GPIO spent on backlight dimming.
+constexpr int kTftSckPin = 18;   // VSPI SCK (fixed)
+constexpr int kTftMisoPin = 19;  // VSPI MISO (fixed, unused by the display)
+constexpr int kTftMosiPin = 23;  // VSPI MOSI (fixed)
+constexpr int kTftCsPin = 15;
+constexpr int kTftDcPin = 27;
+constexpr int kTftRstPin = 26;
 
 // MQTT (PROJECT_PLAN.md section 8)
 constexpr char kMqttBroker[] = "192.168.1.10";

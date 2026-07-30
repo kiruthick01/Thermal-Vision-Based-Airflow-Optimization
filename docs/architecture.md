@@ -44,6 +44,7 @@ sequenceDiagram
 | `airflow_controller.py` | `controller/airflow_controller.py` | Production-shaped version of the predictive controller: subscribes to live MQTT topics, loads the trained model, publishes control/setpoint decisions. |
 | `mqtt_integration_test.py` | `simulation/mqtt_integration_test.py` | Spins up an in-process `amqtt` broker, drives a simulated publisher, and confirms the controller reacts end-to-end. |
 | `angleForHotspots` / `airflowServo` | `firmware/src/main.cpp` | On-device airflow-direction reflex: maps the strongest detected hotspot's column to a servo angle (`config.h` `kServoPin`) every frame. Independent of the MQTT round-trip -- doesn't wait on `airflow_controller.py`. |
+| `HeatmapDisplay` | `firmware/src/HeatmapDisplay.{h,cpp}` | On-device live visualization: renders the current frame as a false-color heatmap with hotspot markers on a 2.4" ILI9341 SPI TFT, every frame. Purely visual -- reads the same frame/hotspot data `main.cpp` already computed, doesn't feed back into detection or control. |
 
 ## Two actuation paths, two timescales
 
@@ -58,6 +59,21 @@ There are deliberately two separate actuation mechanisms, not one:
   `cooling_level`, published back over MQTT to `onSetpoint()`. This is where
   a relay/compressor interface would eventually plug in (not yet wired --
   see `docs/hardware-bom.md`).
+
+## On-device outputs
+
+Every frame, `main.cpp` drives three local outputs directly from
+`HotspotDetector`'s result -- none of them wait on MQTT or the host-side
+controller:
+
+- **Heartbeat/hotspot LEDs** (`kHeartbeatLedPin`/`kHotspotLedPin`): cheap
+  at-a-glance status.
+- **Airflow-direction servo** (`airflowServo`): see "Two actuation paths"
+  below.
+- **Live heatmap display** (`heatmapDisplay.render(...)`): a false-color
+  rendering of the raw frame plus hotspot markers on the ILI9341 TFT --
+  makes the sensor data and detector output visible in real time, which is
+  otherwise only inferable from LED blinks or Serial logs.
 
 ## Sensor abstraction and hardware swap-in
 

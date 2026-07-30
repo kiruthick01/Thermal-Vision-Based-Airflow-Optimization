@@ -97,12 +97,15 @@ packages, which the default SIM build does not need.
 (`esp32dev` env, `SENSOR_MODE_SIM`) to an ESP32 DevKit V1 with:
 `D2` (green LED, "heartbeat") toggling once per `kFramePeriodMs` frame cycle,
 `D4` (red LED, "hotspot") lighting while `SimulatedSensor`'s current frame has
-at least one detected hotspot, and a `wokwi-servo` on `D18` that physically
+at least one detected hotspot, a `wokwi-servo` on `D13` that physically
 rotates to track the strongest detected hotspot's position (`kServoPin`,
 `angleForHotspots()` in `main.cpp`) -- the same directional-airflow logic
-that drives the real SG90 servo once hardware arrives. No thermal camera
-part exists in Wokwi's library, so this demonstrates the on-device sensing ->
-`HotspotDetector` -> indicator/servo pipeline exactly as it runs in
+that drives the real SG90 servo once hardware arrives -- and a `wokwi-ili9341`
+TFT (SCK/MISO/MOSI on `D18`/`D19`/`D23`, CS/DC/RST on `D15`/`D27`/`D26`) that
+renders the live false-color heatmap with hotspot markers, driven by
+`HeatmapDisplay::render()` every frame. No thermal camera part exists in
+Wokwi's library, so this demonstrates the on-device sensing ->
+`HotspotDetector` -> indicator/servo/display pipeline exactly as it runs in
 `SENSOR_MODE_SIM` (no WiFi/MQTT broker required either -- `connectWifi()` is
 a no-op in SIM builds, and `MqttManager` degrades to silent no-op publishes
 when disconnected).

@@ -2,6 +2,7 @@
 #include <ESP32Servo.h>
 #include <WiFi.h>
 
+#include "HeatmapDisplay.h"
 #include "HotspotDetector.h"
 #include "MqttManager.h"
 #include "ThermalSensor.h"
@@ -36,6 +37,7 @@ HotspotDetector detector(kHotspotDeltaC, kHotspotMinPixels);
 Hotspot hotspots[kMaxHotspots];
 MqttManager mqtt(kMqttBroker, kMqttPort, kMqttZone, kMqttClientId);
 Servo airflowServo;
+HeatmapDisplay heatmapDisplay;
 
 unsigned long lastFrameMs = 0;
 bool heartbeatState = false;
@@ -101,6 +103,10 @@ void setup() {
   airflowServo.attach(kServoPin, 500, 2400);
   airflowServo.write(kServoCenterAngleDeg);
 
+  if (!heatmapDisplay.begin()) {
+    Serial.println("Heatmap display init failed");
+  }
+
   connectWifi();
   mqtt.setSetpointCallback(onSetpoint);
   mqtt.begin();
@@ -132,6 +138,8 @@ void loop() {
 
   const int angle = angleForHotspots(hotspots, count, sensor.cols());
   airflowServo.write(angle);
+
+  heatmapDisplay.render(frame, sensor.rows(), sensor.cols(), hotspots, count);
 
   Serial.printf("Frame processed: %d hotspot(s), servo angle %d\n", count, angle);
 }
