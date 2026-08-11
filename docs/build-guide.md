@@ -18,16 +18,28 @@ ESP32 in and check a serial port appears.
 
 ## 1. Solder headers
 
-The AMG8833 and TFT modules ship with loose header pins. Solder them before
-anything else — you can't breadboard without them.
+The AMG8833 ships with a loose 6-pin header strip. Solder it before anything
+else — you can't breadboard without it. (Check the TFT too; those often come
+pre-soldered.)
 
-- Push the header's long side through the module from the **component side**
-  so the pins point down.
-- Seat the module on the breadboard to hold everything square while you
-  solder. This is the trick that keeps pins straight.
-- Tin the tip, touch the iron to pad and pin together for ~2 seconds, feed
-  solder to the *joint* (not the iron), remove.
-- Good joint = shiny cone. Dull blob = reheat it.
+**Use the breadboard as a jig.** This is the trick that makes a beginner's
+first solder job come out straight:
+
+1. Push the header's **long** pins down into the breadboard. The black
+   plastic spacer rests on the breadboard surface, short pins pointing up.
+2. Drop the PCB over the short pins, **label side facing up**. The board now
+   sits flat and perfectly square with no hands needed.
+3. Solder the six short pins to the pads on the top face.
+
+Technique: tin the tip, touch the iron to the pad *and* pin together for
+about two seconds, then feed solder into the **joint** — not onto the iron.
+Remove solder first, then the iron.
+
+A good joint is a small shiny cone that wets both pad and pin. A dull grey
+blob means it moved while cooling — reheat it. A ball sitting on top of the
+pad without spreading means the pad wasn't hot enough.
+
+Don't linger more than ~4 seconds per joint.
 
 ## 2. Seat the ESP32
 
@@ -66,15 +78,33 @@ probe on each supply rail. Expect ~3.3V and ~5.0V. Then check continuity
 
 ### AMG8833 thermal sensor (I2C)
 
-| Sensor pin | ESP32 pin |
-|---|---|
-| VIN | 3V3 |
-| GND | GND |
-| SDA | **GPIO21** |
-| SCL | **GPIO22** |
+The breakout has **six** pins. Physical order on the silkscreen, left to
+right, is:
 
-These are the ESP32's default `Wire` pins, which is what `Adafruit_AMG88xx`
-uses — no pin config needed in firmware.
+```
+VIN   GND   SCL   SDA   INT   AD0
+```
+
+**SCL comes before SDA.** Counting pins left-to-right and assuming the usual
+"SDA then SCL" ordering is the most common way to get this wrong, and the
+symptom is `Sensor init failed` with no other clue.
+
+| Sensor pin | ESP32 pin | |
+|---|---|---|
+| VIN | 3V3 | not 5V |
+| GND | GND rail | |
+| SCL | **GPIO22** | 3rd pin |
+| SDA | **GPIO21** | 4th pin |
+| INT | *leave unconnected* | interrupt output, unused |
+| AD0 | *leave unconnected* | I2C address select |
+
+GPIO21/22 are the ESP32's default `Wire` pins, which is what
+`Adafruit_AMG88xx` uses — no pin config needed in firmware.
+
+`AD0` selects the I2C address. Left floating it gives 0x69, which is the
+library default that `AMG8833Sensor::begin()` relies on. If the sensor
+refuses to initialise and the wiring checks out, the other candidate address
+is 0x68.
 
 ### ILI9341 TFT (SPI)
 
