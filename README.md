@@ -1,9 +1,16 @@
 # Thermal Vision-Based Intelligent Airflow Optimization
 
 ESP32 + thermal-camera (MLX90640 or AMG8833) HVAC controller. Software-complete
-and validated entirely in simulation before any hardware purchase. Swapping in
-real hardware later requires zero logic changes -- only swapping the sensor
-implementation behind one interface (`ThermalSensor`).
+and validated in simulation before any hardware purchase; now built and
+confirmed working end-to-end on real hardware -- AMG8833 sensing, hotspot
+detection, pan+tilt servo tracking, and the ILI9341 live heatmap display all
+verified live (`docs/build-guide.md`). Swapping in real hardware required zero
+logic changes -- only swapping the sensor implementation behind one interface
+(`ThermalSensor`).
+
+Wireless re-flash (ArduinoOTA) is available once the board's joined WiFi --
+`pio run -e esp32dev_amg8833_ota -t upload --upload-port <esp32-ip>` -- so
+further iteration doesn't need the USB cable after the first flash.
 
 See `PROJECT_PLAN.md` for the full spec this repo implements. Every number
 below comes from a script's own printed output -- see `docs/results.md` for
@@ -20,7 +27,7 @@ Last full re-verification pass, every script/test re-run from scratch:
 | `ml/train_drift_model.py` | PASS | Test MAE=0.1566 deg C, RMSE=0.2344 deg C |
 | `simulation/energy_simulation.py` | PASS | mean=24.00% std=9.60% reduction (20 seeds); comfort MAE static=0.522 deg C, predictive=0.999 deg C |
 | `simulation/mqtt_integration_test.py` | PASS | 20/20 setpoint decisions, exit code 0 |
-| `pio run -e esp32dev` (firmware) | PASS | RAM 11.1%, Flash 28.9% |
+| `pio run -e esp32dev` (firmware) | PASS | RAM 17.3%, Flash 60.4% |
 
 **This does not clear the ~90% accuracy claim from PROJECT_PLAN.md section 0.**
 Precision is excellent (99.7-100%: almost no false alarms), but recall is
@@ -84,16 +91,31 @@ cd firmware && pio run -e esp32dev              # compile-check firmware (SIM bu
 
 Full command reference and expected output: `docs/setup.md`.
 
-## Switching to real hardware later
+## Switching to real hardware
 
-1. Wire up the MLX90640 or AMG8833 breakout (I2C) to the ESP32 -- see
-   `docs/hardware-bom.md`.
-2. Build with `pio run -e esp32dev_mlx90640` or `pio run -e esp32dev_amg8833`
-   instead of the default `esp32dev` (SIM) environment.
-3. Fill in real WiFi/MQTT broker settings in `firmware/include/config.h`.
+Done for the AMG8833 build -- see `docs/build-guide.md` for the full
+assembly/bring-up walkthrough and `docs/hardware-bom.md` for parts. Short
+version:
+
+1. Wire up the MLX90640 or AMG8833 breakout (I2C) to the ESP32.
+2. Build with `pio run -e esp32dev_amg8833_demo` (real sensor, radio off --
+   what the physical demo runs on) or `pio run -e esp32dev_amg8833`
+   (real sensor + WiFi/MQTT) instead of the default `esp32dev` (SIM)
+   environment. `esp32dev_mlx90640` exists too but is untested on real
+   MLX90640 hardware -- only AMG8833 has been physically wired and run.
+3. Fill in real WiFi/MQTT broker settings in `firmware/include/config.h` if
+   using the networked build.
 
 No change to `HotspotDetector`, `MqttManager`, `main.cpp`, or anything on the
 Python side -- they only ever talk to the `ThermalSensor` interface.
+
+Two ILI9341 clone quirks worth knowing before wiring one up (both already
+fixed in `HeatmapDisplay.cpp`, documented here so a driver swap doesn't
+silently reintroduce them): the panel corrupts its own GRAM under
+`setRotation(1)` regardless of wiring or power -- `rotation(3)` at a reduced
+20MHz SPI clock is what's clean on this board -- and the AMG8833's row order
+needed a software flip to match real-world up/down without touching that
+rotation register.
 
 ## Status vs. resume claims
 

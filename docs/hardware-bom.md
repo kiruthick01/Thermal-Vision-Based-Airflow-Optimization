@@ -1,7 +1,9 @@
-# Hardware BOM (to buy later)
+# Hardware BOM
 
-Not purchased yet -- software-complete-in-simulation first, per
-PROJECT_PLAN.md section 0. Prices are rough street estimates, not quotes.
+Purchased and built for the AMG8833 budget tier -- sensing, hotspot
+detection, pan+tilt servo tracking, and the TFT heatmap all confirmed
+working on real hardware (`docs/build-guide.md`). Prices below are rough
+street estimates from before the purchase, not final receipts.
 
 Two tiers below: a minimum-budget build (what's actually being purchased)
 and the higher-resolution alternative, for reference.

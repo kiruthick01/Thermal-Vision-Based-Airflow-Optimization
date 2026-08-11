@@ -100,6 +100,16 @@ sense -> detect -> LEDs/servos/TFT with no network delay and no network
 failure modes. `esp32dev_amg8833` is the same build *with* WiFi + MQTT for
 running against `controller/airflow_controller.py`.
 
+`esp32dev_amg8833_ota` is `esp32dev_amg8833` uploaded over WiFi (ArduinoOTA)
+instead of USB. The board must already be running OTA-capable firmware
+(anything except the SIM or `DISABLE_NETWORK` builds) and joined to
+`kWifiSsid` -- check the serial boot log for `OTA ready: <hostname>.local
+(<ip>)`, then:
+
+```bash
+pio run -e esp32dev_amg8833_ota -t upload --upload-port <esp32-ip>
+```
+
 ## Wokwi simulation (no hardware needed)
 
 `firmware/diagram.json` + `firmware/wokwi.toml` wire the default SIM build

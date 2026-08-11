@@ -3,6 +3,11 @@
 Hardware assembly for the AMG8833 build. Follow the order below — power
 comes last, deliberately.
 
+**Status: this build has been fully wired and run.** Sensing, hotspot
+detection, pan servo, tilt servo, and the TFT heatmap are all confirmed
+working end-to-end on real hardware. The steps and failure-mode table below
+reflect what actually happened during that bring-up, not just a plan.
+
 ## 0. Before you touch anything
 
 Three things to verify first. Each one wastes an hour if you get it wrong.
@@ -179,6 +184,19 @@ pio device monitor -b 115200
    twitching = grounds not common, or supply sagging.
 5. **TFT** — heatmap should appear. White screen = wrong VCC voltage or
    wrong driver chip. Garbage pixels = loose SCK/MOSI.
+
+   **Known clone-panel quirk, already fixed in firmware:** the common red
+   2.4" ILI9341+SD+touch breakout corrupts its own GRAM under
+   `setRotation(1)` — a band of colorful static appears in a fixed spot
+   (bottom quarter, at 320x240) no matter what you do to wiring, power, or
+   grounding. Confirmed by isolating it with a diagnostic full-screen solid
+   fill (bypassing all render logic) — the static was still there, proving
+   it's the rotation register, not a code or wiring bug. `HeatmapDisplay.cpp`
+   uses `setRotation(3)` (clean) plus a reduced 20MHz SPI clock instead of
+   the library default (~40MHz, too fast for breadboard jumpers and causes
+   a *different* corrupted band). If you swap to a different ILI9341 board
+   and see static again, try the same combination before re-debugging
+   wiring from scratch.
 6. **Tilt servo** (optional) — only once 1-5 are solid. Needs the pan/tilt
    bracket mechanically centred at 90°.
 
@@ -205,7 +223,8 @@ servo's horn.
 | Board reboots when servo moves | Servos drawing from ESP32's 5V. Separate supply. |
 | Serial prints boot loop / brownout | Same. |
 | White TFT screen | Wrong VCC voltage, or driver isn't ILI9341 |
-| TFT shows noise | Loose SCK or MOSI |
+| TFT shows noise across the whole frame | Loose SCK or MOSI |
+| TFT shows a fixed band of colorful static (bottom quarter, survives reflash/power-cycle/reseating) | Clone-panel `setRotation(1)` GRAM corruption — use `setRotation(3)` + 20MHz SPI clock, see step 5 above |
 | `Sensor init failed` | SDA/SCL swapped, or sensor on 5V not 3V3 |
 | Servo jitters constantly | Grounds not tied together |
 | Nothing on serial | Charge-only USB cable |
