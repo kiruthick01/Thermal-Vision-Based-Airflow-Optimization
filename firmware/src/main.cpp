@@ -2,6 +2,11 @@
 #include <ESP32Servo.h>
 #include <WiFi.h>
 
+#if !defined(SENSOR_MODE_SIM) && !defined(DISABLE_NETWORK)
+#include <ArduinoOTA.h>
+#define OTA_ENABLED 1
+#endif
+
 #include "HeatmapDisplay.h"
 #include "HotspotDetector.h"
 #include "MqttManager.h"
@@ -155,12 +160,22 @@ void setup() {
   }
 
   mqtt.setSetpointCallback(onSetpoint);
-  if (!connectWifi()) {
+  const bool wifiUp = connectWifi();
+  if (!wifiUp) {
     Serial.println("No WiFi -- MQTT will retry in the background");
   }
   // Called either way: begin() only configures the client when the link is
   // down, and loop() completes the connection if WiFi turns up later.
   mqtt.begin();
+
+#if defined(OTA_ENABLED)
+  if (wifiUp) {
+    ArduinoOTA.setHostname(kOtaHostname);
+    if (kOtaPassword[0] != '\0') ArduinoOTA.setPassword(kOtaPassword);
+    ArduinoOTA.begin();
+    Serial.printf("OTA ready: %s.local (%s)\n", kOtaHostname, WiFi.localIP().toString().c_str());
+  }
+#endif
 
   if (!sensor.begin()) {
     Serial.println("Sensor init failed");
@@ -168,6 +183,9 @@ void setup() {
 }
 
 void loop() {
+#if defined(OTA_ENABLED)
+  ArduinoOTA.handle();
+#endif
   mqtt.loop();
 
   const unsigned long now = millis();

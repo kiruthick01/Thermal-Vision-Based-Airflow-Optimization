@@ -81,4 +81,12 @@ constexpr char kWifiPassword[] = "CHANGE_ME";
 constexpr unsigned long kWifiConnectTimeoutMs = 10000;
 constexpr unsigned long kMqttReconnectIntervalMs = 5000;
 
+// OTA (wireless re-flash once WiFi is up -- see `pio run -t upload
+// --upload-port <esp32-ip>`). Hostname is how the board shows up in
+// `pio device list --serial` / Arduino IDE's network port list.
+// Password is optional but recommended once the board is on a shared
+// network; leave "" to disable auth.
+constexpr char kOtaHostname[] = "esp32-thermal-1";
+constexpr char kOtaPassword[] = "";
+
 constexpr unsigned long kFramePeriodMs = 2000;

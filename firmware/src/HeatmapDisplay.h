@@ -29,8 +29,19 @@ private:
   static constexpr int kScreenH = 240;
   static constexpr int kStatusBarH = 20;
 
+  // Render grid is fixed regardless of sensor resolution (8x8 AMG8833 or
+  // 24x32 MLX90640/SIM) -- bilinearSample() upsamples whatever the source
+  // frame is onto this grid, so the on-screen block size (and how smooth
+  // the gradient looks) stays constant across sensors instead of showing
+  // raw 40x28px cells for the coarse AMG8833.
+  static constexpr int kRenderCols = 64;
+  static constexpr int kRenderRows = 48;
+
   SPIClass spi_{VSPI};
   Adafruit_ILI9341 tft_{&spi_, kTftDcPin, kTftCsPin, kTftRstPin};
 
   static uint16_t thermalColor565(float t, float tMin, float tMax);
+  // Interpolated temperature at continuous source-grid coordinate (fx, fy)
+  // -- fx in [0, cols-1], fy in [0, rows-1]. Standard 4-neighbor bilinear.
+  static float bilinearSample(const float* frame, int rows, int cols, float fx, float fy);
 };
