@@ -1,8 +1,13 @@
 #include "MqttManager.h"
 
+#include <Arduino.h>
+#include <WiFi.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
+#include "config.h"
 
 MqttManager* MqttManager::instance_ = nullptr;
 
@@ -14,9 +19,19 @@ MqttManager::MqttManager(const char* broker, int port, const char* zone, const c
   instance_ = this;
 }
 
+// Configures the client unconditionally, then attempts a first connect only
+// if there's actually a link. Safe to call with WiFi down -- loop() will
+// pick up the connection later without needing begin() again.
 bool MqttManager::begin() {
   mqttClient_.setServer(broker_, port_);
   mqttClient_.setCallback(staticCallback);
+  // PubSubClient defaults to a 15 s socket timeout; a failed connect would
+  // stall the whole main loop (and with it the servos and the TFT) for that
+  // long on every retry. 2 s is plenty on a LAN.
+  mqttClient_.setSocketTimeout(2);
+
+  if (WiFi.status() != WL_CONNECTED) return false;
+  lastReconnectAttemptMs_ = millis();
   return reconnect();
 }
 
@@ -32,7 +47,20 @@ bool MqttManager::reconnect() {
 }
 
 void MqttManager::loop() {
-  if (!mqttClient_.connected()) reconnect();
+  // No link, nothing to do. Without this guard PubSubClient would attempt a
+  // TCP connect on every pass and block the main loop.
+  if (WiFi.status() != WL_CONNECTED) return;
+
+  if (!mqttClient_.connected()) {
+    // Rate-limit reconnects. Retrying every frame turns an absent broker
+    // into a visibly stuttering servo/display.
+    const unsigned long now = millis();
+    if (now - lastReconnectAttemptMs_ < kMqttReconnectIntervalMs) return;
+    lastReconnectAttemptMs_ = now;
+    reconnect();
+    return;
+  }
+
   mqttClient_.loop();
 }
 

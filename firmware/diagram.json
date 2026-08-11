@@ -48,6 +48,13 @@
       "attrs": { "horn": "single" }
     },
     {
+      "type": "wokwi-servo",
+      "id": "tilt_servo",
+      "top": 250,
+      "left": 420,
+      "attrs": { "horn": "single" }
+    },
+    {
       "type": "wokwi-ili9341",
       "id": "tft",
       "top": 320,
@@ -67,6 +74,10 @@
     [ "esp:D13", "airflow_servo:PWM", "orange", [] ],
     [ "esp:5V", "airflow_servo:V+", "red", [] ],
     [ "esp:GND.3", "airflow_servo:GND", "black", [] ],
+
+    [ "esp:D25", "tilt_servo:PWM", "orange", [] ],
+    [ "esp:5V", "tilt_servo:V+", "red", [] ],
+    [ "esp:GND.3", "tilt_servo:GND", "black", [] ],
 
     [ "esp:D18", "tft:SCK", "yellow", [] ],
     [ "esp:D19", "tft:SDO", "yellow", [] ],

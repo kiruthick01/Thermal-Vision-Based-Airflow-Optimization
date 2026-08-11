@@ -35,6 +35,7 @@ private:
   char topicStatus_[64];
   char topicSetpoint_[64];
   SetpointCallback setpointCallback_ = nullptr;
+  unsigned long lastReconnectAttemptMs_ = 0;
 
   bool reconnect();
   void onMessage(char* topic, uint8_t* payload, unsigned int length);

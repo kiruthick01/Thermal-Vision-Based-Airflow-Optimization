@@ -41,6 +41,15 @@ constexpr int kServoMinAngleDeg = 0;
 constexpr int kServoMaxAngleDeg = 180;
 constexpr int kServoCenterAngleDeg = 90;  // no hotspot: park at center
 
+// Second axis (tilt) on the pan/tilt bracket: maps the strongest hotspot's
+// *row* to a vertical vane angle, the same way kServoPin maps its column.
+// Deliberately a narrower sweep than the pan axis -- a vent flap tilting a
+// full 180 deg would just point at the ceiling or the floor.
+constexpr int kServoTiltPin = 25;
+constexpr int kTiltMinAngleDeg = 60;
+constexpr int kTiltMaxAngleDeg = 120;
+constexpr int kTiltCenterAngleDeg = 90;
+
 // ILI9341 2.4" SPI TFT -- live color heatmap of the current thermal frame
 // plus detected-hotspot markers (HeatmapDisplay.h/.cpp). Uses the ESP32's
 // hardware VSPI bus: SCK/MISO/MOSI are fixed by the peripheral, CS/DC/RST
@@ -63,5 +72,13 @@ constexpr char kMqttClientId[] = "esp32-thermal-1";
 // fully offline.
 constexpr char kWifiSsid[] = "CHANGE_ME";
 constexpr char kWifiPassword[] = "CHANGE_ME";
+
+// Hard cap on the WiFi join attempt. On expiry the firmware logs and
+// carries on *offline* -- sensing, hotspot detection, both servos, the LEDs
+// and the TFT heatmap are all on-device and must never be held hostage by a
+// missing AP, wrong credentials, or (on an ESP32-WROOM-32U) a missing
+// external antenna. MQTT reconnects opportunistically in the background.
+constexpr unsigned long kWifiConnectTimeoutMs = 10000;
+constexpr unsigned long kMqttReconnectIntervalMs = 5000;
 
 constexpr unsigned long kFramePeriodMs = 2000;

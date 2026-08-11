@@ -37,6 +37,7 @@ HotspotDetector detector(kHotspotDeltaC, kHotspotMinPixels);
 Hotspot hotspots[kMaxHotspots];
 MqttManager mqtt(kMqttBroker, kMqttPort, kMqttZone, kMqttClientId);
 Servo airflowServo;
+Servo tiltServo;
 HeatmapDisplay heatmapDisplay;
 
 unsigned long lastFrameMs = 0;
@@ -47,17 +48,37 @@ bool heartbeatState = false;
 // sensor's field of view to a servo angle, so the vent physically points
 // toward whoever is warmest in frame. Returns kServoCenterAngleDeg (park
 // position) when nothing is detected.
-int angleForHotspots(const Hotspot* spots, int count, int cols) {
-  if (count <= 0 || cols <= 1) return kServoCenterAngleDeg;
-
+// Index of the hotspot with the highest peak temperature, or -1 if there
+// are none. Shared by both servo axes so pan and tilt always track the same
+// blob -- picking independently could aim the two axes at different people.
+int strongestHotspot(const Hotspot* spots, int count) {
+  if (count <= 0) return -1;
   int strongest = 0;
   for (int i = 1; i < count; ++i) {
     if (spots[i].peak_temp_c > spots[strongest].peak_temp_c) strongest = i;
   }
+  return strongest;
+}
+
+int angleForHotspots(const Hotspot* spots, int count, int cols) {
+  const int strongest = strongestHotspot(spots, count);
+  if (strongest < 0 || cols <= 1) return kServoCenterAngleDeg;
 
   const float colFrac = spots[strongest].col / static_cast<float>(cols - 1);
   const float angle = kServoMinAngleDeg + colFrac * (kServoMaxAngleDeg - kServoMinAngleDeg);
   return constrain(static_cast<int>(angle), kServoMinAngleDeg, kServoMaxAngleDeg);
+}
+
+// Tilt axis: hotspot row -> vertical vane angle. Row 0 is the *top* of the
+// sensor's field of view, so the mapping is inverted -- a blob near row 0
+// should tilt the vane up (toward kTiltMaxAngleDeg), not down.
+int tiltAngleForHotspots(const Hotspot* spots, int count, int rows) {
+  const int strongest = strongestHotspot(spots, count);
+  if (strongest < 0 || rows <= 1) return kTiltCenterAngleDeg;
+
+  const float rowFrac = spots[strongest].row / static_cast<float>(rows - 1);
+  const float angle = kTiltMaxAngleDeg - rowFrac * (kTiltMaxAngleDeg - kTiltMinAngleDeg);
+  return constrain(static_cast<int>(angle), kTiltMinAngleDeg, kTiltMaxAngleDeg);
 }
 
 void onSetpoint(float setpointC) {
@@ -69,14 +90,30 @@ void onSetpoint(float setpointC) {
   // airflowServo -- it doesn't wait on this MQTT round-trip.
 }
 
-void connectWifi() {
+// Returns true if the link came up. Never blocks longer than
+// kWifiConnectTimeoutMs: everything that makes this device *work* (sensing,
+// detection, both servos, LEDs, TFT) is on-device, so a missing AP, wrong
+// credentials, or an unplugged u.FL antenna must degrade to "offline", not
+// to a dead board stuck in setup().
+bool connectWifi() {
 #if !defined(SENSOR_MODE_SIM)
+  WiFi.mode(WIFI_STA);
   WiFi.begin(kWifiSsid, kWifiPassword);
+
+  const unsigned long start = millis();
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+    if (millis() - start > kWifiConnectTimeoutMs) {
+      Serial.println("\nWiFi connect timed out -- running offline");
+      return false;
+    }
+    delay(250);
     Serial.print(".");
   }
-  Serial.println("WiFi connected");
+  Serial.print("\nWiFi connected, IP ");
+  Serial.println(WiFi.localIP());
+  return true;
+#else
+  return false;
 #endif
 }
 
@@ -103,12 +140,20 @@ void setup() {
   airflowServo.attach(kServoPin, 500, 2400);
   airflowServo.write(kServoCenterAngleDeg);
 
+  tiltServo.setPeriodHertz(50);
+  tiltServo.attach(kServoTiltPin, 500, 2400);
+  tiltServo.write(kTiltCenterAngleDeg);
+
   if (!heatmapDisplay.begin()) {
     Serial.println("Heatmap display init failed");
   }
 
-  connectWifi();
   mqtt.setSetpointCallback(onSetpoint);
+  if (!connectWifi()) {
+    Serial.println("No WiFi -- MQTT will retry in the background");
+  }
+  // Called either way: begin() only configures the client when the link is
+  // down, and loop() completes the connection if WiFi turns up later.
   mqtt.begin();
 
   if (!sensor.begin()) {
@@ -137,9 +182,11 @@ void loop() {
   digitalWrite(kHotspotLedPin, count > 0 ? HIGH : LOW);
 
   const int angle = angleForHotspots(hotspots, count, sensor.cols());
+  const int tilt = tiltAngleForHotspots(hotspots, count, sensor.rows());
   airflowServo.write(angle);
+  tiltServo.write(tilt);
 
   heatmapDisplay.render(frame, sensor.rows(), sensor.cols(), hotspots, count);
 
-  Serial.printf("Frame processed: %d hotspot(s), servo angle %d\n", count, angle);
+  Serial.printf("Frame processed: %d hotspot(s), pan %d deg, tilt %d deg\n", count, angle, tilt);
 }
