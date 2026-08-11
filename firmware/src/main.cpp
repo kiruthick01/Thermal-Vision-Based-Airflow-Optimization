@@ -96,7 +96,15 @@ void onSetpoint(float setpointC) {
 // credentials, or an unplugged u.FL antenna must degrade to "offline", not
 // to a dead board stuck in setup().
 bool connectWifi() {
-#if !defined(SENSOR_MODE_SIM)
+#if defined(SENSOR_MODE_SIM) || defined(DISABLE_NETWORK)
+  // Standalone builds: radio off, no join attempt, no boot delay at all.
+  // Everything downstream already no-ops without a link -- MqttManager::loop()
+  // returns immediately on WiFi.status() != WL_CONNECTED, and PubSubClient's
+  // publish() is a cheap false when disconnected -- so nothing else needs
+  // guarding for this to compile and run clean.
+  WiFi.mode(WIFI_OFF);
+  return false;
+#else
   WiFi.mode(WIFI_STA);
   WiFi.begin(kWifiSsid, kWifiPassword);
 
@@ -112,8 +120,6 @@ bool connectWifi() {
   Serial.print("\nWiFi connected, IP ");
   Serial.println(WiFi.localIP());
   return true;
-#else
-  return false;
 #endif
 }
 

@@ -81,15 +81,24 @@ pio run -e esp32dev
 First run downloads the `espressif32` platform/toolchain (~9 minutes,
 needs network). Subsequent runs are fast.
 
-Other environments, once real hardware is wired up (`docs/hardware-bom.md`):
+Other environments, once real hardware is wired up (`docs/hardware-bom.md`,
+and `docs/build-guide.md` for physical assembly):
 
 ```bash
 pio run -e esp32dev_mlx90640
 pio run -e esp32dev_amg8833
+pio run -e esp32dev_amg8833_demo
 ```
 
 These pull in the `Adafruit MLX90640` / `Adafruit AMG88xx Library` PlatformIO
 packages, which the default SIM build does not need.
+
+`esp32dev_amg8833_demo` is the bench/demo build: same real AMG8833 sensing
+path, but `-D DISABLE_NETWORK` leaves the radio off and skips the WiFi join
+entirely, so the board boots straight into
+sense -> detect -> LEDs/servos/TFT with no network delay and no network
+failure modes. `esp32dev_amg8833` is the same build *with* WiFi + MQTT for
+running against `controller/airflow_controller.py`.
 
 ## Wokwi simulation (no hardware needed)
 

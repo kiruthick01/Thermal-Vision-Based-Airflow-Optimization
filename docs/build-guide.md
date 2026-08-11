@@ -127,19 +127,36 @@ Run through this before plugging anything in.
 
 Do not wire everything and hope. Add one subsystem, flash, confirm, move on.
 
-1. **Bare board** — `pio run -e esp32dev -t upload`, open the serial monitor
-   at 115200. You should see frames processing. Nothing attached yet.
-2. **LEDs only** — green should toggle every 2 s, red follows hotspot count.
-3. **Sensor** — build with `-e esp32dev_amg8833`. Serial should report
+Use the **`esp32dev_amg8833_demo`** environment for all of this. It's the
+real sensor build with the radio switched off — instant boot, no WiFi, no
+broker, nothing to fail on demo day:
+
+```bash
+cd firmware
+pio run -e esp32dev_amg8833_demo -t upload
+pio device monitor -b 115200
+```
+
+1. **Bare board** — flash `-e esp32dev -t upload` (the SIM build), open the
+   serial monitor at 115200. Frames should process. Nothing attached yet.
+   Do this step *first and early* — the initial run downloads the ESP32
+   toolchain (~9 min).
+2. **LEDs only** — green toggles every 2 s, red follows hotspot count.
+3. **Sensor** — switch to `-e esp32dev_amg8833_demo`. Serial should report
    plausible hotspot counts; wave your hand in front of the sensor.
    If `Sensor init failed`, it's I2C: check SDA/SCL aren't swapped.
-4. **TFT** — heatmap should appear. White screen = wrong VCC voltage or
+4. **Pan servo** — expect movement as the hotspot shifts left/right. Random
+   twitching = grounds not common, or supply sagging.
+5. **TFT** — heatmap should appear. White screen = wrong VCC voltage or
    wrong driver chip. Garbage pixels = loose SCK/MOSI.
-5. **Servos** — attach *one* at a time. Expect small movements as hotspots
-   shift. Random twitching = grounds not common, or supply sagging.
-6. **WiFi/MQTT** — fill in `kWifiSsid` / `kWifiPassword` / `kMqttBroker` in
-   `firmware/include/config.h`. Serial prints the IP on success, or
-   "running offline" after 10 s. Everything else keeps working either way.
+6. **Tilt servo** (optional) — only once 1-5 are solid. Needs the pan/tilt
+   bracket mechanically centred at 90°.
+
+Networking is deliberately *not* part of demo bring-up. If you later want
+the full MQTT path, fill in `kWifiSsid` / `kWifiPassword` / `kMqttBroker` in
+`firmware/include/config.h` and build `-e esp32dev_amg8833` instead — that
+environment keeps the radio on and reconnects in the background. On an
+ESP32-WROOM-**32U** it also needs a u.FL antenna physically attached.
 
 ## 7. Mounting
 
