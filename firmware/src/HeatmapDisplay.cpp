@@ -3,9 +3,10 @@
 bool HeatmapDisplay::begin() {
   spi_.begin(kTftSckPin, kTftMisoPin, kTftMosiPin, kTftCsPin);
   // Default SPI clock (~40MHz) is too fast for breadboard jumper wiring --
-  // showed up as a corrupted/snowy band on the top of every frame (the
-  // status bar redraw, drawn last, was the transaction that glitched).
-  // 20MHz is comfortably within what jumper wires can carry cleanly.
+  // showed up as a corrupted/snowy band on every frame. 20MHz fixed that.
+  // (A separate banding artifact across steep color gradients turned out
+  // to be sensor noise amplified by upsampling, not SPI timing -- dropping
+  // the clock further to 10MHz had zero effect on it; see smoothFrame().)
   tft_.begin(20000000);
   // landscape: 320x240. rotation(1) corrupts the bottom quarter of the
   // panel on this clone (confirmed via a solid fillScreen test -- not a
@@ -19,14 +20,19 @@ bool HeatmapDisplay::begin() {
 }
 
 void HeatmapDisplay::render(const float* frame, int rows, int cols, const Hotspot* spots, int count) {
+  // Display-only smoothed copy -- HotspotDetector already ran on the raw
+  // `frame` upstream in main.cpp, so this can't affect detection accuracy.
+  float smoothed[kMaxFramePixels];
+  smoothFrame(frame, smoothed, rows, cols);
+
   // Auto-scale the color gradient to this frame's actual range -- same
   // behavior as a real cheap thermal camera (no fixed absolute scale).
-  float tMin = frame[0];
-  float tMax = frame[0];
+  float tMin = smoothed[0];
+  float tMax = smoothed[0];
   const int n = rows * cols;
   for (int i = 1; i < n; ++i) {
-    if (frame[i] < tMin) tMin = frame[i];
-    if (frame[i] > tMax) tMax = frame[i];
+    if (smoothed[i] < tMin) tMin = smoothed[i];
+    if (smoothed[i] > tMax) tMax = smoothed[i];
   }
   if (tMax - tMin < 0.5f) tMax = tMin + 0.5f;  // avoid a degenerate flat gradient
 
@@ -51,7 +57,7 @@ void HeatmapDisplay::render(const float* frame, int rows, int cols, const Hotspo
       const float fx = (cols <= 1) ? 0.0f : cc / static_cast<float>(kRenderCols - 1) * (cols - 1);
       const int x0 = (cc * kScreenW) / kRenderCols;
       const int x1 = ((cc + 1) * kScreenW) / kRenderCols;
-      const float t = bilinearSample(frame, rows, cols, fx, fy);
+      const float t = bilinearSample(smoothed, rows, cols, fx, fy);
       tft_.fillRect(x0, y0, x1 - x0, y1 - y0, thermalColor565(t, tMin, tMax));
     }
   }
@@ -76,6 +82,26 @@ void HeatmapDisplay::render(const float* frame, int rows, int cols, const Hotspo
   tft_.setCursor(2, 4);
   tft_.setTextColor(ILI9341_WHITE);
   tft_.printf("Hotspots: %d   %.1f-%.1fC", count, tMin, tMax);
+}
+
+void HeatmapDisplay::smoothFrame(const float* src, float* dst, int rows, int cols) {
+  for (int r = 0; r < rows; ++r) {
+    for (int c = 0; c < cols; ++c) {
+      float sum = 0.0f;
+      int count = 0;
+      for (int dr = -1; dr <= 1; ++dr) {
+        const int rr = r + dr;
+        if (rr < 0 || rr >= rows) continue;
+        for (int dc = -1; dc <= 1; ++dc) {
+          const int cc = c + dc;
+          if (cc < 0 || cc >= cols) continue;
+          sum += src[rr * cols + cc];
+          ++count;
+        }
+      }
+      dst[r * cols + c] = sum / count;
+    }
+  }
 }
 
 float HeatmapDisplay::bilinearSample(const float* frame, int rows, int cols, float fx, float fy) {

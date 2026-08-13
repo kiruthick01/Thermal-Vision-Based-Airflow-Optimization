@@ -37,6 +37,10 @@ private:
   static constexpr int kRenderCols = 64;
   static constexpr int kRenderRows = 48;
 
+  // Largest source frame this project's sensors produce (MLX90640/SIM's
+  // 24x32); AMG8833's 8x8 fits easily within it.
+  static constexpr int kMaxFramePixels = 24 * 32;
+
   SPIClass spi_{VSPI};
   Adafruit_ILI9341 tft_{&spi_, kTftDcPin, kTftCsPin, kTftRstPin};
 
@@ -44,4 +48,10 @@ private:
   // Interpolated temperature at continuous source-grid coordinate (fx, fy)
   // -- fx in [0, cols-1], fy in [0, rows-1]. Standard 4-neighbor bilinear.
   static float bilinearSample(const float* frame, int rows, int cols, float fx, float fy);
+  // 3x3 box blur (edge-clamped) into dst, display-only -- softens the
+  // sensor's normal per-pixel measurement noise before the 6x render-grid
+  // upsampling amplifies it into visible banding across steep gradients.
+  // Never touches the caller's original frame, which HotspotDetector
+  // already ran on upstream -- detection accuracy is unaffected.
+  static void smoothFrame(const float* src, float* dst, int rows, int cols);
 };
