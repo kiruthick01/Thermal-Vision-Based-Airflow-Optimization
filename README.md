@@ -124,3 +124,17 @@ rotation register.
   eval -- see `docs/results.md` for the real numbers and why.
 - ~25% lower simulated energy use: measured 24.00% mean (std 9.60%) across
   20 seeds -- matches.
+
+## Extending to new environments or sensors
+
+The modular sensor interface (`ThermalSensor`) makes it straightforward to add
+new thermal cameras or deploy to different HVAC systems. Simulation via
+`thermal_dynamics_sim.py` and `hotspot_accuracy_eval.py` allows testing and
+validation before hardware commitment. The drift model can be retrained on
+real-world thermal characteristics of your specific space using
+`ml/train_drift_model.py` -- just feed it observed temperature and occupancy
+pairs. For multi-zone or hierarchical control, extend `MqttManager` to
+subscribe to additional topics and `airflow_controller.py` to orchestrate
+setpoint decisions across zones. All changes remain behind the same interfaces,
+so firmware and deployment logic stay decoupled and testable.
+
